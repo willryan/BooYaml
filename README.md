@@ -7,8 +7,11 @@ usage:
 
 import BooYaml
 
-def MyCode():
-  yml = Yaml.Parse("/path/to/file.yml")
-  if yml['key'] == 'value':
-    for stuff as duck in yml['array']:
-      print stuff['subkey']
+class MyClass:
+
+  def MyFunc():
+  
+    yml = Yaml.Parse("/path/to/file.yml")  
+    if yml['key'] == 'value':
+      for stuff as duck in yml['array']:
+        print stuff['subkey']
