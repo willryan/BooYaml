@@ -1,0 +1,92 @@
+# original, hacked in version just to get by.  Kept for reference
+
+namespace BooYaml
+
+import System.IO
+
+class Yaml:
+  static def Parse(path) as duck:
+    node = PrettyHash() 
+    index = 0
+    lines as List[of string] = List[of string](File.ReadAllLines(path))
+    while (index < lines.Count):
+      index = addToNode(node, index, 0, lines)
+    return node
+      
+  static def addToNode(node as Hash, index as int, indent as int, lines as List[of string]) as int:
+    line as string = lines[index] as string
+    while line.Trim().Length == 0:
+      index += 1
+      if index >= lines.Count:
+        return index
+      line = lines[index] as string
+    cap = indent*2
+    if (line.Length <= cap) or (line[0:cap] != ("  " * indent)):
+      # back up
+      return index
+    index += 1
+    r = /^\W*(?<key>\w+):\W*(?<value>\w*)$/.Match(line)
+    key = r.Groups["key"].Value
+    value = r.Groups["value"].Value
+    if value != "":
+      node[key] = value
+      return index
+    else:
+      # peek
+      if index >= lines.Count:
+      	return index
+      elif lines[index] =~ /^\W*-/:
+        node[key] = List()
+        oldIndex = index-1
+        while oldIndex != index and index < lines.Count:
+          oldIndex = index
+          index = addToArray(node[key], index, indent, lines)
+         return index
+      else:
+        node[key] = PrettyHash() 
+        oldIndex = index-1
+        while oldIndex != index and index < lines.Count:
+          oldIndex = index
+          index = addToNode(node[key], index, indent + 1, lines)
+         return index
+
+  static def addToArray(array as List, index as int, indent as int, lines as List[of string]) as int:
+    line = lines[index]
+    cap = (indent+1)*2
+    if (line.Length <= cap) or (line[0:cap] != ("  " * indent + "- ")):
+      # back up
+      return index
+    index += 1
+    r = /^\W*-\W+(?<value>\w+)(?<isobject>:?\W*)(?<subValue>\w*)$/.Match(line)
+    value = r.Groups["value"].Value
+    subValue = r.Groups["subValue"].Value
+    isobject = (r.Groups["isobject"].Value != "")
+    if (not isobject):
+      array.Add(value)
+      return index
+    else:
+      newHash = PrettyHash()
+      array.Add(newHash)
+      newVal = newHash
+      if (subValue != ""):
+        newHash[value] = subValue
+      # peek
+      if index >= lines.Count:
+      	return index
+      elif (subValue == "") and (lines[index] =~ /^\W*-/):
+        newHash[value] = List()
+        oldIndex = index-1
+        while oldIndex != index and index < lines.Count:
+          oldIndex = index
+          index = addToArray(newHash[value], index, indent + 1, lines)
+         return index
+      else:
+        if (subValue == ""):
+          newVal = newHash[value]
+          newHash[value] = PrettyHash()
+        oldIndex = index-1
+        while oldIndex != index and index < lines.Count:
+          oldIndex = index
+          index = addToNode(newVal, index, indent + 1, lines)
+        return index
+

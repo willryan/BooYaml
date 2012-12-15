@@ -1,0 +1,19 @@
+foo:
+  bar: 1
+  baz: 2
+  array:
+  - 1
+  - 2
+  - 3
+nestedArr:
+- array:
+  - test
+nestedHash:
+  nestedKey:
+    finally: boo
+arrObj:
+- key1: val1
+  key2: val2
+- key1: valA
+  key2: valB
+  
